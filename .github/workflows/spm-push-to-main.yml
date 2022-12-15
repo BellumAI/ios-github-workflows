@@ -45,6 +45,10 @@ jobs:
 
       - name: Run unit tests (all targets) and collect coverage
         run: swift test --parallel --disable-automatic-resolution --enable-code-coverage
+        
+      - name: DEBUG - Check code coverage output
+        run: |
+          ls -la .build/debug/codecov 
 
       - name: Install swift-test-codecov
         run: brew install bellumai/homebrew-tap/swift-test-codecov
