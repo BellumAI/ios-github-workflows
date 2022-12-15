@@ -46,9 +46,10 @@ jobs:
       - name: Run unit tests (all targets) and collect coverage
         run: swift test --parallel --disable-automatic-resolution --enable-code-coverage
         
-      - name: DEBUG - Check code coverage output
+      - name: Create the Code Coverage file if it doesn't exist (No unit tests)
         run: |
-          ls -la .build/debug/codecov 
+          [ ! -f "${CODECOV_DIR}/${{ inputs.project-name }}.json" ] && echo '{"version":"","type":"","data":[]}' > ${CODECOV_DIR}/${{ inputs.project-name }}.json
+          ls -la ${CODECOV_DIR}/
 
       - name: Install swift-test-codecov
         run: brew install bellumai/homebrew-tap/swift-test-codecov
