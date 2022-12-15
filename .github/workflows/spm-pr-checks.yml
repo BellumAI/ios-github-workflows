@@ -19,7 +19,7 @@ on:
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
-  CODECOV_DIR: .build/debug/codecov/
+  CODECOV_DIR: .build/debug/codecov
   SWIFT_TEST_CODECOV_PARAMS: --no-warn-missing-tests --base-json-file ./base-coverage.json
 
 jobs:
