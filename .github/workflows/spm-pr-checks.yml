@@ -109,10 +109,3 @@ jobs:
       - name: Check Code Coverage (and fail if under 50% or coverage amount goes down.)
         run: |
           swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --minimum ${{  inputs.code-coverage-required }} --fail-on-negative-delta --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS}
-
-
-  call-sonarcloud-check:
-    needs: lint-unit-test-and-coverage
-    uses: bellumai/ios-github-workflows/.github/workflows/spm-sonarqube.yml@v1
-    secrets: inherit
-    
