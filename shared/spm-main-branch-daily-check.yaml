@@ -1,0 +1,45 @@
+name: Swift Package Main Branch daily check (for caching)
+on:
+  workflow_call:
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
+
+jobs:
+  last_day_commits:
+    runs-on: ubuntu-latest
+    outputs:
+      commits_count: ${{ steps.commits.outputs.count }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Check for commits within last 24 hours
+        id: commits
+        run: |
+          count=$(git rev-list --count HEAD --since=1.day)
+          echo "count=${count}" >> $GITHUB_OUTPUT
+
+  main-branch-daily-check:
+    needs: last_day_commits
+    runs-on: macos-12
+    if: ${{needs.last_day_commits.outputs.commits_count > 0 }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/cache@v3
+        name: Restore .build folder from cache
+        id: cache-spm
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('./Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Run swiftlint in strict mode
+        run: swiftlint lint --strict
+
+      - name: Test
+        run: swift test --parallel --disable-automatic-resolution --enable-code-coverage

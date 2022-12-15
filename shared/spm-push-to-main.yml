@@ -1,0 +1,117 @@
+name: Swift Package Push to Main Publish Coverage
+
+on:
+  workflow_call:
+    project-name:
+      required: true
+      type: string
+    code-coverage-required:
+      description: 'Fail if coverage is below this percent. (Default 50%)'
+      required: false
+      default: 50
+      type: number
+    code-coverage-warning:
+      description: 'Yellow badge if coverage is below this percent. (Default 95%)'
+      required: false
+      default: 95
+      type: number
+    code-coverage-exclude:
+      description: 'Regex pattern of file paths to exclude from coverage calculation'
+      required: false
+      default: '\.build|Tests|Internal|Mock'
+      type: string
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
+  CODECOV_DIR: .build/debug/codecov/
+  SWIFT_TEST_CODECOV_PARAMS: --no-explain-failure --no-warn-missing-tests
+
+jobs:
+  lint-unit-test-and-coverage:
+    runs-on: macos-12
+    name: Test and Coverage
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/cache@v3
+        name: Restore .build folder from cache
+        id: cache-spm
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('./Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Run unit tests (all targets) and collect coverage
+        run: swift test --parallel --disable-automatic-resolution --enable-code-coverage
+
+      - name: Install swift-test-codecov
+        run: brew install bellumai/homebrew-tap/swift-test-codecov
+
+      - name: Get project-level code coverage
+        id: project-coverage
+        run: |
+            echo "PROJECT_COVERAGE=$(swift-test-codecov ${CODECOV_DIR}/${{ project-name }}.json --print-format numeric --exclude-path "${{ code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS})" >> $GITHUB_OUTPUT
+
+      - name: DEBUG - Verify coverage variable
+        run: echo ${{ steps.project-coverage.outputs.PROJECT_COVERAGE }}
+
+      - name: Cache Badge Generator package
+        id: cache-badge-generator
+        uses: actions/cache@v3
+        with:
+            path: ./bin/coverage-badge-generator
+            key: ${{ runner.os }}-badge-generator
+            restore-keys: |
+              ${{ runner.os }}-badge-generator
+
+      - if: ${{ steps.cache-badge-generator.outputs.cache-hit != 'true' }}
+        name: Install Badge Generator
+        run: cargo install --git https://github.com/BellumAI/coverage-badge-generator  --root ./
+
+      - name: Create the coverage directory for storing coverage results
+        run: mkdir coverage
+
+      - name: Generate Coverage Badge
+        run: ./bin/coverage-badge-generator ${{ steps.project-coverage.outputs.PROJECT_COVERAGE }} -o ./coverage/coverage-badge.svg
+
+      - name: Export code coverage table
+        run: |
+          swift-test-codecov ${CODECOV_DIR}/${{ project-name }}.json --print-format table --exclude-path "${{ code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS} > ./coverage/coverage-table.txt
+
+      - name: Export code coverage as JSON (Used by PRs to find coverage delta.)
+        run: |
+          swift-test-codecov ${CODECOV_DIR}/${{ project-name }}.json --print-format json --exclude-path "${{ code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS} > ./coverage/coverage.json
+
+      - name: DEBUG - Verify JSON report (for debugging...)
+        run: |
+            cat ./coverage/coverage.json
+            cat ./coverage/coverage-table.txt
+
+      - name: Archive Coverage Folder
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-folder
+          path: ./coverage
+
+  coverage-reports:
+    name: Generate and Publish Coverage Reports and Badge
+    needs: lint-unit-test-and-coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create coverage directory
+        run: mkdir coverage
+
+      - name: Download Coverage Badge artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: coverage-folder
+          path: ./coverage/
+
+      - name: Publish coverage report to GitHub Pages https://bellumai.github.io/${{ github.event.repository.name }}
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+            folder: ./coverage
