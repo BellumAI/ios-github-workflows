@@ -2,19 +2,20 @@ name: Swift Package PR Checks
 
 on:
   workflow_call:
-    project-name:
-      required: true
-      type: string
-    code-coverage-required:
-      description: 'Fail if coverage is below this percent. (Default 50%)'
-      required: false
-      default: 50
-      type: number
-    code-coverage-exclude: 
-      description: 'Regex pattern of file paths to exclude from coverage calculation'
-      required: false
-      default: '\.build|Tests|Internal|Mock'
-      type: string
+    inputs:
+      project-name:
+        required: true
+        type: string
+      code-coverage-required:
+        description: 'Fail if coverage is below this percent. (Default 50%)'
+        required: false
+        default: 50
+        type: number
+      code-coverage-exclude: 
+        description: 'Regex pattern of file paths to exclude from coverage calculation'
+        required: false
+        default: '\.build|Tests|Internal|Mock'
+        type: string
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
@@ -82,7 +83,7 @@ jobs:
 
       - name: Generate Code Coverage Table
         run: |
-          swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format table --exclude-path "${{ code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS} > coverage-table.txt
+          swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format table --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS} > coverage-table.txt
 
       - name: Store code coverage table to environment variable
         id: coverage-table
@@ -107,23 +108,11 @@ jobs:
 
       - name: Check Code Coverage (and fail if under 50% or coverage amount goes down.)
         run: |
-          swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --minimum ${{  code-coverage-required }} --fail-on-negative-delta --exclude-path "${{ code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS}
+          swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --minimum ${{  inputs.code-coverage-required }} --fail-on-negative-delta --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS}
 
-  sonar-reports:
-    name: SonarQube Reports
+
+  call-sonarcloud-check:
     needs: lint-unit-test-and-coverage
-    runs-on: ubuntu-latest
-
-    # we want to skip all checks in case of draft PRs
-    if: ${{ !github.event.pull_request.draft }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: SonarCloud Scan
-        uses: sonarsource/sonarqube-scan-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    uses: bellumai/ios-github-workflows/.github/workflows/spm-sonarqube.yml@v1
+    secrets: inherit
+    
