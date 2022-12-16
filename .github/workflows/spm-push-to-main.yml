@@ -63,7 +63,7 @@ jobs:
       - name: Get project-level code coverage
         id: project-coverage
         run: |
-          echo "PROJECT_COVERAGE=$(swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format numeric --exclude-path "${{ inputs.code-coverage-exclude }})"
+          echo "PROJECT_COVERAGE=$(swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format numeric --exclude-path "${{ inputs.code-coverage-exclude }}")
           echo "PROJECT_COVERAGE=$(swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format numeric --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS})" >> $GITHUB_OUTPUT
 
       - name: DEBUG - Verify coverage variable
