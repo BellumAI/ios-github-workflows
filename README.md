@@ -16,6 +16,7 @@ The starter files reference a tag on this repository. If you need to modify the 
     1. Replace `ProjectNameHere` with the `Package` `name` from the package's Package.swift.
     2. If you changed `code-coverage-required` and/or `code-coverage-exclude` in `pr-checks.yml` make the same changes in `push.yml`.
     3. If desired, uncomment and edit the default values from `code-coverage-warning`.
+5. If you're using SonarQube make sure a `sonar-project.properties` file is created with an appropriate `projectKey` and checked-in to the repo. If you're not using SonarQube, delete the `sonarqube-check.yml` file.
 5. Commit and Push your changes to the remote. 
 6. Open a PR for your changes - This will trigger the `SonarQube Check` and `Swift Package PR Checks` workflows to run. Let them finish, they may or may not be successful.
 7. Request review(s) for the PR. 
