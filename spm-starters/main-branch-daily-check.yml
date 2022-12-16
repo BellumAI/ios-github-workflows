@@ -1,0 +1,18 @@
+name: Main Branch Daily-Check
+
+on:
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '0 4 * * *'  # 4 AM UTC each day - after US working day has ended and EU hasn't started yet
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  call-main-branch-daily-check:
+    uses: bellumai/ios-github-workflows/.github/workflows/spm-main-branch-daily-check.yml@v1
+    secrets: inherit

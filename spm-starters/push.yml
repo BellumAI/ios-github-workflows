@@ -1,0 +1,31 @@
+name: Swift Package Push to Main Publish Coverage
+
+on:
+  # Allows to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+  push:
+    branches:
+      - 'main'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  call-push-to-main:
+    uses: bellumai/ios-github-workflows/.github/workflows/spm-push-to-main.yml@v1
+    with:
+      # Enter Project Name Here (The `name` of the `Package` in Package.swift)
+      project-name: ProjectNameHere
+
+      # Uncomment and update if default is not enough. (Make the same change in pr-checks.yml)
+      # code-coverage-required: 50
+
+      # Uncomment and update if default is not enough.
+      # code-coverage-warning: 95
+
+      # Uncomment and update if default RegEx needs to be modified. (Make the same change in pr-checks.yml)
+      # code-coverage-exclude: '\.build|Tests|Internal|Mock'
+
+    secrets: inherit

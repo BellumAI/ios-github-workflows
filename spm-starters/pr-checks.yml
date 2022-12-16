@@ -1,0 +1,26 @@
+name: Swift Package PR Checks
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+      - 'release/*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  call-pr-checks:
+    uses: bellumai/ios-github-workflows/.github/workflows/spm-pr-checks.yml@v1
+    with:
+      # Project Name Here (The `name` of the `Package` in Package.swift)
+      project-name: ProjectNameHere
+
+      # Uncomment and update if default is not enough. (Make the same change in push.yml)
+      # code-coverage-required: 50
+
+      # Uncomment and update if default RegEx needs to be modified. (Make the same change in push.yml)
+      # code-coverage-exclude: '\.build|Tests|Internal|Mock'
+
+    secrets: inherit
