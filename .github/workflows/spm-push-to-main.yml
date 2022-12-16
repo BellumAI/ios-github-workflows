@@ -44,23 +44,31 @@ jobs:
             ${{ runner.os }}-spm-
 
       - name: Run unit tests (all targets) and collect coverage
-        run: swift test --parallel --disable-automatic-resolution --enable-code-coverage
+        run: |
+          swift test --parallel --disable-automatic-resolution --enable-code-coverage
         
       - name: Create the Code Coverage file if it doesn't exist (No unit tests)
         run: |
           [ ! -f "${CODECOV_DIR}/${{ inputs.project-name }}.json" ] && echo '{"version":"","type":"","data":[]}' > ${CODECOV_DIR}/${{ inputs.project-name }}.json
+          
+      - name: DEBUG Swift Test Coverage Output
+        run: |
           ls -la ${CODECOV_DIR}/
+          cat ${CODECOV_DIR}/${{ inputs.project-name }}.json
 
       - name: Install swift-test-codecov
-        run: brew install bellumai/homebrew-tap/swift-test-codecov
+        run: |
+          brew install bellumai/homebrew-tap/swift-test-codecov
 
       - name: Get project-level code coverage
         id: project-coverage
         run: |
-            echo "PROJECT_COVERAGE=$(swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format numeric --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS})" >> $GITHUB_OUTPUT
+          echo "PROJECT_COVERAGE=$(swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format numeric --exclude-path "${{ inputs.code-coverage-exclude }}"
+          echo "PROJECT_COVERAGE=$(swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format numeric --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS})" >> $GITHUB_OUTPUT
 
       - name: DEBUG - Verify coverage variable
-        run: echo ${{ steps.project-coverage.outputs.PROJECT_COVERAGE }}
+        run: |
+          echo ${{ steps.project-coverage.outputs.PROJECT_COVERAGE }}
 
       - name: Cache Badge Generator package
         id: cache-badge-generator
@@ -73,10 +81,12 @@ jobs:
 
       - if: ${{ steps.cache-badge-generator.outputs.cache-hit != 'true' }}
         name: Install Badge Generator
-        run: cargo install --git https://github.com/BellumAI/coverage-badge-generator  --root ./
+        run: |
+          cargo install --git https://github.com/BellumAI/coverage-badge-generator  --root ./
 
       - name: Create the coverage directory for storing coverage results
-        run: mkdir coverage
+        run: |
+          mkdir coverage
 
       - name: Generate Coverage Badge
         run: |
@@ -84,16 +94,18 @@ jobs:
 
       - name: Export code coverage table
         run: |
+          swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format table --exclude-path "${{ inputs.code-coverage-exclude }}"
           swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format table --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS} > ./coverage/coverage-table.txt
 
       - name: Export code coverage as JSON (Used by PRs to find coverage delta.)
         run: |
+          swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format json --exclude-path "${{ inputs.code-coverage-exclude }}"
           swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format json --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS} > ./coverage/coverage.json
 
       - name: DEBUG - Verify JSON report (for debugging...)
         run: |
-            cat ./coverage/coverage.json
-            cat ./coverage/coverage-table.txt
+          cat ./coverage/coverage.json
+          cat ./coverage/coverage-table.txt
 
       - name: Archive Coverage Folder
         uses: actions/upload-artifact@v3
@@ -110,7 +122,8 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Create coverage directory
-        run: mkdir coverage
+        run: |
+          mkdir coverage
 
       - name: Download Coverage Badge artifact
         uses: actions/download-artifact@v3
