@@ -25,7 +25,7 @@ on:
 env:
   DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
   CODECOV_DIR: .build/debug/codecov
-  SWIFT_TEST_CODECOV_PARAMS: --explain-failure --warn-missing-tests
+  SWIFT_TEST_CODECOV_PARAMS: --no-explain-failure --no-warn-missing-tests
 
 jobs:
   lint-unit-test-and-coverage:
@@ -63,7 +63,7 @@ jobs:
       - name: Get project-level code coverage
         id: project-coverage
         run: |
-          echo "PROJECT_COVERAGE=$(swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format numeric --exclude-path "${{ inputs.code-coverage-exclude }}"
+          echo "PROJECT_COVERAGE=$(swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format numeric --exclude-path "${{ inputs.code-coverage-exclude }})"
           echo "PROJECT_COVERAGE=$(swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format numeric --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS})" >> $GITHUB_OUTPUT
 
       - name: DEBUG - Verify coverage variable
@@ -95,7 +95,7 @@ jobs:
       - name: Export code coverage table
         run: |
           swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format table --exclude-path "${{ inputs.code-coverage-exclude }}"
-          swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format table --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS} > ./coverage/coverage-table.txt
+          swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format table --exclude-path "${{ inputs.code-coverage-exclude }}" > ./coverage/coverage-table.txt
 
       - name: Export code coverage as JSON (Used by PRs to find coverage delta.)
         run: |
