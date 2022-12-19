@@ -24,6 +24,7 @@ on:
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_14.1.app/Contents/Developer
+  GIT_SSH_PRIVATE_KEY: ${{ secrets.GIT_SSH_PRIVATE_KEY }}
   CODECOV_DIR: .build/debug/codecov
   SWIFT_TEST_CODECOV_PARAMS: --no-explain-failure --no-warn-missing-tests
 
