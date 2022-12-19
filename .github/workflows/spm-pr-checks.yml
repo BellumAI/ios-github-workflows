@@ -83,11 +83,21 @@ jobs:
       - name: Run unit tests (all targets) and collect coverage
         run: swift test --parallel --disable-automatic-resolution --enable-code-coverage
 
+      - name: Create the Code Coverage file if it doesn't exist (No unit tests)
+        run: |
+          [ ! -f "${CODECOV_DIR}/${{ inputs.project-name }}.json" ] && echo '{"version":"","type":"","data":[]}' > ${CODECOV_DIR}/${{ inputs.project-name }}.json
+          
+      - name: DEBUG Swift Test Coverage Output
+        run: |
+          ls -la ${CODECOV_DIR}/
+          cat ${CODECOV_DIR}/${{ inputs.project-name }}.json
+
       - name: Install swift-test-codecov
         run: brew install bellumai/homebrew-tap/swift-test-codecov
 
       - name: Generate Code Coverage Table
         run: |
+          swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format table --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS}
           swift-test-codecov ${CODECOV_DIR}/${{ inputs.project-name }}.json --print-format table --exclude-path "${{ inputs.code-coverage-exclude }}" ${SWIFT_TEST_CODECOV_PARAMS} > coverage-table.txt
 
       - name: Store code coverage table to environment variable
