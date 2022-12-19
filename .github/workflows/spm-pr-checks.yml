@@ -69,8 +69,6 @@ jobs:
         with:
           path: .build
           key: ${{ runner.os }}-spm-${{ hashFiles('./Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-spm-
 
       - name: Run swiftlint in strict mode
         run: swiftlint lint --strict
