@@ -41,6 +41,12 @@ jobs:
         with:
           path: .build
           key: ${{ runner.os }}-spm-${{ hashFiles('./Package.resolved') }}
+          
+      - name: workaround SPM issue with fetching GitHub dependencies over SSH
+        run: ssh-add - <<< "$GIT_SSH_PRIVATE_KEY"
+
+      - name: add github to known_hosts to prevent issues with fetching SPM dependencies
+        run: for ip in $(dig @8.8.8.8 github.com +short); do ssh-keyscan github.com,$ip; ssh-keyscan $ip; done 2>/dev/null >> ~/.ssh/known_hosts
 
       - name: Run unit tests (all targets) and collect coverage
         run: |
