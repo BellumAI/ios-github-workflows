@@ -54,7 +54,7 @@ jobs:
         
       - name: Create the Code Coverage file if it doesn't exist (No unit tests)
         run: |
-          [ ! -f "${CODECOV_DIR}/${{ inputs.project-name }}.json" ] && echo '{"version":"","type":"","data":[]}' > ${CODECOV_DIR}/${{ inputs.project-name }}.json
+          ([ ! -f "${CODECOV_DIR}/${{ inputs.project-name }}.json" ] && echo '{"version":"","type":"","data":[]}' > ${CODECOV_DIR}/${{ inputs.project-name }}.json) || echo "Coverage File Exists!"
           
       - name: DEBUG Swift Test Coverage Output
         run: |
